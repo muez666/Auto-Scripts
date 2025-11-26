@@ -18,7 +18,7 @@ jobs:
       - name: Checkout private repository
         uses: actions/checkout@v4
         with:
-          repository: YOUR_USERNAME/YOUR_PRIVATE_REPO  # 替换为你的私有仓库
+          repository: kamanmuez/Hostopia-Auto-Renew
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r scripts/requirements.txt
           playwright install chromium
           playwright install-deps chromium
       
@@ -45,6 +45,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
+          cd scripts
           python main.py
       
       - name: Upload error screenshot (if exists)
@@ -52,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: error-screenshot
-          path: error.png
+          path: scripts/error.png
           if-no-files-found: ignore
 
       - name: Clean old workflow runs
