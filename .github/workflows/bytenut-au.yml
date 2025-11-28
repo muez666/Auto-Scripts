@@ -78,5 +78,4 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         repository: ${{ github.repository }}
-
         older-than-seconds: 86400  # 删除24小时前的记录
