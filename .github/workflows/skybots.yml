@@ -27,7 +27,7 @@ jobs:
       
       - name: 🌐 设置 WARP
         continue-on-error: true
-        timeout-minutes: 5
+        timeout-minutes: 3
         uses: fscarmen/warp-on-actions@v1.4
         with:
           stack: dual
