@@ -1,0 +1,90 @@
+name: EpicHost Auto Renew
+
+on:
+  # 定时运行：每4小时执行一次
+  schedule:
+    - cron: '0 */4 * * *'  # 每4小时执行一次 (0点、4点、8点、12点、16点、20点 UTC)
+  
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  renew:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    
+    permissions:
+      actions: write   # 允许删除工作流运行记录
+    
+    steps:
+    - name: Checkout private script repository
+      uses: actions/checkout@v4
+      with:
+        repository: kamanmuez/EpicHost-Auto-Renew  # 格式: username/repo-name
+        token: ${{ secrets.PRIVATE_REPO_TOKEN }}  # 需要有读取私库权限的 PAT
+        path: scripts
+    
+    - name: Set up WARP
+      continue-on-error: true
+      timeout-minutes: 5
+      uses: fscarmen/warp-on-actions@v1.4
+      with:
+        stack: dual
+        mode: wireguard
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Check dependencies
+      run: |
+        curl --version
+        python --version
+    
+    - name: Run renew script
+      env:
+        PANEL_DOMAIN: ${{ secrets.PANEL_DOMAIN }}
+        API_KEY: ${{ secrets.API_KEY }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TZ: Asia/Shanghai
+      working-directory: scripts
+      run: python main.py
+    
+    - name: Upload JSON artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: renew-data-${{ github.run_number }}
+        path: |
+          scripts/servers_list.json
+          scripts/servers_info.json
+          scripts/renew_response_*.json
+        retention-days: 30
+        if-no-files-found: ignore
+    
+    - name: Show completion
+      if: always()
+      env:
+        TZ: Asia/Shanghai
+      run: |
+        echo "============================================"
+        echo "🎉 续期任务完成"
+        echo "⏰ 执行时间: $(date +'%Y-%m-%d %H:%M:%S') (北京时间)"
+        echo "============================================"
+
+    - name: Send notification on failure
+      if: failure()
+      run: |
+        echo "续期任务失败，请检查日志"
+        echo "时间: $(date)"
+        echo "工作流: ${{ github.workflow }}"
+        echo "运行ID: ${{ github.run_id }}"
+    
+    - name: Clean up old workflow runs
+      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        repository: ${{ github.repository }}
+        older-than-seconds: 86400  # 删除24小时前的记录
