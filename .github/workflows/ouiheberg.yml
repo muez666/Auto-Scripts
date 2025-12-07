@@ -19,6 +19,14 @@ jobs:
           repository: kamanmuez/OuiHeberg-Auto-Restart
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
+    
+      - name: Set up WARP
+        continue-on-error: true
+        timeout-minutes: 3
+        uses: fscarmen/warp-on-actions@v1.4
+        with:
+          stack: dual
+          mode: wireguard
 
       - name: Run restart script
         working-directory: scripts
