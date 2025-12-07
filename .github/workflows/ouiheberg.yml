@@ -1,0 +1,53 @@
+name: OuiHeberg Auto Restart
+
+on:
+  schedule:
+    - cron: '*/40 * * * *'
+  workflow_dispatch:
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+
+    steps:
+      - name: Checkout private script repository
+        uses: actions/checkout@v4
+        with:
+          repository: kamanmuez/OuiHeberg-Auto-Restart
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: scripts
+
+      - name: Run restart script
+        working-directory: scripts
+        run: |
+          chmod +x restart.sh
+          ./restart.sh
+
+      - name: Show completion
+        if: always()
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          echo "============================================"
+          echo "🎉 重启任务完成"
+          echo "⏰ 执行时间: $(date +'%Y-%m-%d %H:%M:%S') (北京时间)"
+          echo "============================================"
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "重启任务失败，请检查日志"
+          echo "时间: $(date)"
+          echo "工作流: ${{ github.workflow }}"
+          echo "运行ID: ${{ github.run_id }}"
+
+      - name: Clean up old workflow runs
+        uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository: ${{ github.repository }}
+          older-than-seconds: 3600  # 删除1小时前的记录
