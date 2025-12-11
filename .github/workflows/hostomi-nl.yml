@@ -22,14 +22,6 @@ jobs:
         repository: kamanmuez/Hostomi-NL-Auto-Renew  # 格式: username/repo-name
         token: ${{ secrets.PRIVATE_REPO_TOKEN }}  # 需要有读取私库权限的 PAT
         path: scripts
-
-    - name: Set up WARP
-      continue-on-error: true
-      timeout-minutes: 3
-      uses: fscarmen/warp-on-actions@v1.4
-      with:
-        stack: dual
-        mode: wireguard
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -47,6 +39,8 @@ jobs:
         API_KEY: ${{ secrets.API_KEY }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        CLOUDFLARE_WORKER_URL: ${{ secrets.CLOUDFLARE_WORKER_URL }}
+        CLOUDFLARE_WORKER_AUTH: ${{ secrets.CLOUDFLARE_WORKER_AUTH }}
         TZ: Asia/Shanghai
       working-directory: scripts
       run: python main.py
