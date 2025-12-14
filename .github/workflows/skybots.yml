@@ -1,15 +1,11 @@
 name: SkyBots Auto Renew
 
 on:
-  # 每天运行一次（北京时间 12:00）
   schedule:
-    - cron: '0 4 * * *'  # UTC 4:00，对应北京时间 12:00
-  
-  # 支持手动触发
+    - cron: '0 4 * * *'  # 每天中午12点运行
   workflow_dispatch:
 
 permissions:
-  contents: write
   actions: write
 
 jobs:
@@ -18,38 +14,46 @@ jobs:
     timeout-minutes: 10
     
     steps:
-      - name: 📥 检出私有仓库
+      - name: Checkout Private Repo
         uses: actions/checkout@v4
         with:
-          repository: kamanmuez/Skybots-Auto-Renew  # 修改为你的私有仓库
+          repository: kamanmuez/Skybots-Auto-Renew  # 私库位置，格式: username/repo-name
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
-      - name: 🐍 设置 Python 环境
+      - name: Setup WARP
+        continue-on-error: true
+        timeout-minutes: 5
+        uses: fscarmen/warp-on-actions@v1.4
+        with:
+          stack: dual
+          mode: wireguard
+      
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: 'scripts/requirements.txt'
       
-      - name: 📦 安装依赖
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
       
-      - name: 🎭 安装 Playwright 浏览器
+      - name: Install Playwright Browser
         run: |
           playwright install chromium
           playwright install-deps
       
-      - name: 🤖 运行 SkyBots 自动化脚本
+      - name: Run SkyBots Script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         working-directory: scripts
         run: python main.py
       
-      - name: 📸 上传错误截图
+      - name: Upload Error Screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -59,7 +63,7 @@ jobs:
             scripts/skybots_*.png
           if-no-files-found: ignore
       
-      - name: 📄 上传 bot.json
+      - name: Upload bot.json
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -67,18 +71,18 @@ jobs:
           path: scripts/bot.json
           if-no-files-found: ignore
       
-      - name: 📢 失败通知
+      - name: Failure Notification
         if: failure()
         run: |
-          echo "❌ SkyBots 自动化脚本运行失败"
-          echo "⏰ 时间: $(date)"
-          echo "📋 工作流: ${{ github.workflow }}"
-          echo "🔗 运行ID: ${{ github.run_id }}"
+          echo "SkyBots script failed"
+          echo "Time: $(date)"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
       
-      - name: 🧹 清理旧的工作流运行记录
+      - name: Cleanup Old Workflow Runs
         uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository: ${{ github.repository }}
-          older-than-seconds: 86400  # 删除1天前的记录
+          older-than-seconds: 86400  #删除24小时前的工作流记录
