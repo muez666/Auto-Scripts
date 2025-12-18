@@ -8,9 +8,6 @@ on:
   # 允许手动触发
   workflow_dispatch:
 
-permissions:
-  actions: write
-
 jobs:
   auto-renew:
     runs-on: ubuntu-22.04
@@ -85,12 +82,3 @@ jobs:
         path: "scripts/*.png"
         retention-days: 7
         if-no-files-found: ignore
-    
-    - name: Clean up old workflow runs
-      if: always()
-      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        repository: ${{ github.repository }}
-        older-than-seconds: 3600  # 删除1小时前的记录
