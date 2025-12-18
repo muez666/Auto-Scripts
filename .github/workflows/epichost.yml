@@ -12,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     
-    permissions:
-      actions: write   # 允许删除工作流运行记录
-    
     steps:
     - name: Checkout private script repository
       uses: actions/checkout@v4
@@ -54,11 +51,3 @@ jobs:
           scripts/renew_response_*.json
         retention-days: 30
         if-no-files-found: ignore
-    
-    - name: Clean up old workflow runs
-      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        repository: ${{ github.repository }}
-        older-than-seconds: 86400  # 删除24小时前的记录
