@@ -6,10 +6,6 @@ on:
     - cron: '0 */1 * * *'
   workflow_dispatch:  # 允许手动触发
 
-permissions:
-  contents: write
-  actions: write
-
 jobs:
   auto-renew:
     runs-on: ubuntu-22.04
@@ -50,12 +46,3 @@ jobs:
           name: error-screenshot
           path: scripts/error.png
           if-no-files-found: ignore
-
-      - name: Clean old workflow runs
-        if: always()
-        uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository: ${{ github.repository }}
-          older-than-seconds: 86400  # 删除1天前的记录
