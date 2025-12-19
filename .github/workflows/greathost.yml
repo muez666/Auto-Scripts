@@ -33,6 +33,7 @@ jobs:
 
       - name: Run renew script
         env:
+          PYTHONUNBUFFERED: 1
           GREATHOST_MAIL: ${{ secrets.GREATHOST_MAIL }}
           GREATHOST_PASS: ${{ secrets.GREATHOST_PASS }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
