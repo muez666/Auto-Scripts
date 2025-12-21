@@ -1,4 +1,4 @@
-name: Bytenut-SG Auto Renew
+name: ByteNut Auto Renew
 
 on:
   # 定时触发 - 每6小时运行一次
@@ -12,15 +12,15 @@ permissions:
   contents: write
 
 jobs:
-  auto-login:
-    runs-on: ubuntu-22.04
+  auto-renew:
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     
     steps:
     - name: Checkout private repository
       uses: actions/checkout@v4
       with:
-        repository: kamanmuez/ByteNut-SG-Auto-Renew
+        repository: kamanmuez/ByteNut-Auto-Renew
         token: ${{ secrets.PRIVATE_REPO_TOKEN }}
         path: scripts
 
@@ -43,8 +43,6 @@ jobs:
     
     - name: Run auto renew script
       env:
-        BYTENUT_USERNAME: ${{ secrets.BYTENUT_USERNAME }}
-        BYTENUT_PASSWORD: ${{ secrets.BYTENUT_PASSWORD }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       working-directory: scripts
