@@ -13,7 +13,7 @@ jobs:
       - name: Checkout private scripts
         uses: actions/checkout@v4
         with:
-          repository: kamanmuez/GreatHost-Auto-Renew  # 格式: username/repo-name
+          repository: kamanmuez/GreatHost-Auto-Renew
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
 
@@ -22,14 +22,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: stable
-
       - name: Install dependencies
         run: |
           pip install -r scripts/requirements.txt
+          python -m camoufox fetch
 
       - name: Run renew script
         env:
