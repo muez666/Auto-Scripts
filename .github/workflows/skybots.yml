@@ -17,15 +17,7 @@ jobs:
           repository: kamanmuez/Skybots-Auto-Renew  # 私库位置，格式: username/repo-name
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
-      
-      - name: Setup WARP
-        continue-on-error: true
-        timeout-minutes: 5
-        uses: fscarmen/warp-on-actions@v1.4
-        with:
-          stack: dual
-          mode: wireguard
-      
+           
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -55,9 +47,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: error-screenshots
-          path: |
-            scripts/debug_*.png
-            scripts/skybots_*.png
+          path: scripts/screenshots/
           if-no-files-found: ignore
       
       - name: Upload bot.json
