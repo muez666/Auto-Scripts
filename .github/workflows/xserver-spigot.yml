@@ -15,7 +15,7 @@ jobs:
     - name: Checkout private script repository
       uses: actions/checkout@v4
       with:
-        repository: kamanmuez/Xserver-Game-Auto-Renew  # 私有仓库
+        repository: kamanmuez/Xserver-Spigot-Auto-Renew  # 私有仓库
         token: ${{ secrets.PRIVATE_REPO_TOKEN }}  # 需要有读取私库权限的 PAT
         path: scripts
       
