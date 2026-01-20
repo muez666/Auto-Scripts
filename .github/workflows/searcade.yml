@@ -22,7 +22,7 @@ jobs:
       - name: Checkout private scripts
         uses: actions/checkout@v4
         with:
-          repository: kamanmuez/Searcade-Auto-Login  # 格式: username/repo-name
+          repository: muez666/Searcade-Auto-Login  # 格式: username/repo-name
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
 
