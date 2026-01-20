@@ -17,7 +17,7 @@ jobs:
       - name: Checkout private repository
         uses: actions/checkout@v4
         with:
-          repository: kamanmuez/Zenix-Auto-Renew  # 格式: username/repo-name
+          repository: muez666/Zenix-Auto-Renew  # 格式: username/repo-name
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
