@@ -12,7 +12,7 @@ jobs:
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
-          repository: kamanmuez/CloudBlaze-Auto-Start
+          repository: muez666/CloudBlaze-Auto-Start
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
 
