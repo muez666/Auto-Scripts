@@ -16,7 +16,7 @@ jobs:
     - name: Checkout private script repository
       uses: actions/checkout@v4
       with:
-        repository: kamanmuez/Gtxgaming-Auto-Renew  # 格式: username/repo-name
+        repository: muez666/Gtxgaming-Auto-Renew  # 格式: username/repo-name
         token: ${{ secrets.PRIVATE_REPO_TOKEN }}  # 需要有读取私库权限的 PAT
         path: scripts
     
