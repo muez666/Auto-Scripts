@@ -11,7 +11,7 @@ jobs:
       - name: Checkout private script repository
         uses: actions/checkout@v4
         with:
-          repository: muez666/HN21-Auto-Start  # 私库地址
+          repository: ${{ github.repository_owner }}/HN21-Auto-Start  # 私库地址
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
 
