@@ -1,4 +1,4 @@
-name: SliceNodes Auto Renewal
+name: SliceNodes Auto Renew
 
 on:
   schedule:
