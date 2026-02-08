@@ -1,1 +1,49 @@
-1
+name: SliceNodes Auto Renewal
+
+on:
+  schedule:
+    # 每天 UTC 时间 04:00 执行（北京时间 12:00）
+    - cron: '0 4 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout private script repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/SliceNodes-Auto-Renew  # 格式: username/repo-name
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}  # 需要有读取私库权限的 PAT
+          path: scripts
+      
+      - name: Check dependencies
+        run: |
+          curl --version
+          bash --version
+      
+      - name: Setup environment
+        working-directory: scripts
+        run: |
+          chmod +x renew.sh
+          mkdir -p renew_data
+      
+      - name: Run renewal script
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: Asia/Shanghai
+        working-directory: scripts
+        run: bash renew.sh
+      
+      - name: Upload renewal logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renew-data-${{ github.run_number }}
+          path: |
+            scripts/renew_data/*.json
+          retention-days: 30
+          if-no-files-found: ignore
