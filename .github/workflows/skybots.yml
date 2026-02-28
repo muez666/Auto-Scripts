@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-servers:
-    runs-on: ubuntu-22.04
+  renew:
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     
     steps:
@@ -60,12 +60,16 @@ jobs:
           path: scripts/screenshots/
           if-no-files-found: ignore
       
-      - name: Upload bot.json
+      - name: Upload Server Data
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bot-data
-          path: scripts/bot.json
+          name: server-data
+          path: |
+            scripts/client.json
+            scripts/server_*.json
+            scripts/resources_*.json
+            scripts/renew_*.json
           if-no-files-found: ignore
       
       - name: Failure Notification
