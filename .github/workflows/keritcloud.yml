@@ -50,13 +50,15 @@ jobs:
         run: |
           pip install -r requirements.txt
           python -m playwright install chromium
+          sudo apt-get update
+          sudo apt-get install -y xvfb
       
-      - name: Run renewal script
+      - name: Run renewal script with xvfb
         working-directory: scripts
         env:
           SOCKS_PROXY_URL: ${{ secrets.SOCKS_PROXY_URL }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python main.py
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python main.py
       
       - name: Commit updated session
         if: success()
