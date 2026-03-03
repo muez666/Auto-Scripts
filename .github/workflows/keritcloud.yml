@@ -2,20 +2,19 @@ name: KeritCloud Auto Renew
 
 on:
   schedule:
-    # 北京时间中午12点 = UTC 04:00
-    - cron: '0 4 * * *'
-  workflow_dispatch:
+    # 每天 UTC 时间 0:00 运行（北京时间 8:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   renew:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     
     steps:
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/KeritCloud-Auto-Renew  # 私库的仓库位置
+          repository: ${{ github.repository_owner }}/KeritCloud-Auto-Renew
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
@@ -24,86 +23,49 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install gost (proxy converter)
+      - name: Install dependencies
+        working-directory: scripts
         run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps chromium
+      
+      - name: Setup Gost Proxy
+        working-directory: scripts
+        run: |
+          # 从 main.py 中读取 SOCKS_PROXY 配置
+          SOCKS_PROXY=$(python3 -c "import sys; sys.path.insert(0, '.'); from main import get_socks_proxy; print(get_socks_proxy() or '')")
+          
+          if [ -z "$SOCKS_PROXY" ]; then
+            echo "⚠️ 未配置 SOCKS 代理，跳过代理设置"
+            exit 0
+          fi
+          
+          echo "配置的代理: ${SOCKS_PROXY%%:*}://***"
+          
+          # 下载并启动 Gost
           wget -q https://github.com/ginuerzh/gost/releases/download/v2.11.5/gost-linux-amd64-2.11.5.gz
           gunzip gost-linux-amd64-2.11.5.gz
           chmod +x gost-linux-amd64-2.11.5
-          sudo mv gost-linux-amd64-2.11.5 /usr/local/bin/gost
+          ./gost-linux-amd64-2.11.5 -L=:1080 -F="$SOCKS_PROXY" > gost.log 2>&1 &
+          
+          # 等待 Gost 启动
+          sleep 10
+          echo "✅ Gost 已启动"
       
-      - name: Start gost proxy (if proxy configured)
-        env:
-          SOCKS_PROXY_URL: ${{ secrets.SOCKS_PROXY_URL }}
-        if: ${{ env.SOCKS_PROXY_URL != '' }}
-        run: |
-          echo "Starting gost proxy..."
-          # URL 编码处理（Python 自动处理特殊字符）
-          python3 << 'EOF'
-          import os
-          import urllib.parse
-          import subprocess
-          import time
-          
-          proxy_url = os.environ.get('SOCKS_PROXY_URL', '')
-          if proxy_url:
-              # 解析并重新编码 URL 以确保特殊字符正确处理
-              parsed = urllib.parse.urlparse(proxy_url)
-              
-              # 如果有用户名和密码，确保它们被正确编码
-              if parsed.username and parsed.password:
-                  username = urllib.parse.quote(parsed.username, safe='')
-                  password = urllib.parse.quote(parsed.password, safe='')
-                  netloc = f"{username}:{password}@{parsed.hostname}:{parsed.port}"
-                  encoded_url = f"{parsed.scheme}://{netloc}"
-              else:
-                  encoded_url = proxy_url
-              
-              print(f"Starting gost with proxy (credentials hidden)")
-              # 启动 gost
-              cmd = f"nohup gost -L=socks5://127.0.0.1:1080 -F={encoded_url} > /tmp/gost.log 2>&1 &"
-              subprocess.run(cmd, shell=True)
-              print("Gost proxy started on 127.0.0.1:1080")
-              
-              # 等待 gost 启动
-              time.sleep(3)
-          EOF
-          
-          # 验证 gost 是否运行
-          echo "Checking gost process..."
-          ps aux | grep gost | grep -v grep || echo "Warning: gost may not be running"
-          
-          # 显示 gost 日志（隐藏敏感信息）
-          if [ -f /tmp/gost.log ]; then
-            echo "Gost log (first 20 lines):"
-            head -20 /tmp/gost.log
-          fi
-          
-          # 测试代理连接
-          echo "Testing proxy connection..."
-          curl -x socks5://127.0.0.1:1080 -I https://www.google.com --connect-timeout 10 || echo "Proxy test failed"
-      
-      - name: Install dependencies
-        working-directory: scripts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pip install -r requirements.txt
-          python -m playwright install chromium
-          python -m playwright install-deps chromium
-      
-      - name: Run renewal script
+      - name: Run renew script
         working-directory: scripts
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           SOCKS_PROXY_URL: ${{ secrets.SOCKS_PROXY_URL }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROXY_SERVER: socks5://127.0.0.1:1080
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python main.py
       
-      - name: Upload screenshot
-        if: always()
+      - name: Upload screenshots
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: renewal-screenshot
-          path: scripts/screenshots/renewal_completed.png
-          if-no-files-found: ignore
-          retention-days: 7
+          name: renewal-screenshots
+          path: scripts/*.png
+          retention-days: 30
