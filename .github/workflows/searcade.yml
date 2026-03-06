@@ -6,13 +6,9 @@ on:
     - cron: '0 12 * * 5'
   workflow_dispatch:  # 允许手动触发
 
-permissions:
-  contents: read
-  actions: write
-
 jobs:
   login:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     
     steps:
