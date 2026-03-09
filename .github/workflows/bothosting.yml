@@ -36,18 +36,26 @@ jobs:
         cd extensions/nopecha
         wget -qO chromium.zip https://github.com/NopeCHALLC/nopecha-extension/releases/download/0.5.5/chromium.zip
         unzip -q chromium.zip -d unpacked/
+        
+        # 设置权限
+        chmod -R 755 unpacked/
+        
+        # 验证文件
         echo "📋 Extension files:"
         ls -la unpacked/
-        if [ -f unpacked/manifest.json ]; then
-          echo "✅ Extension installed correctly"
-        else
-          echo "❌ manifest.json not found, checking subdirectories..."
-          find unpacked/ -name "manifest.json"
-        fi
+        
+        # 显示 manifest.json 内容
+        echo "📄 Manifest content:"
+        cat unpacked/manifest.json
+        
+        # 获取绝对路径
+        echo "📂 Absolute path:"
+        pwd
+        realpath unpacked/
         
     - name: Run claim script
       working-directory: scripts
-      run: python main.py
+      run: xvfb-run -a python main.py
       
     - name: Upload artifacts
       if: always()
