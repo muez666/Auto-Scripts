@@ -32,19 +32,22 @@ jobs:
     - name: Setup NopeCHA extension
       working-directory: scripts
       run: |
-        mkdir -p extensions/nopecha
-        wget -qO extensions/nopecha/ext.zip https://github.com/NopeCHALLC/nopecha-extension/releases/download/0.5.5/chromium.zip
-        unzip -q extensions/nopecha/ext.zip -d extensions/nopecha/unpacked/
-        ls -la extensions/nopecha/unpacked/
-        test -f extensions/nopecha/unpacked/manifest.json && echo "✅ Extension installed" || echo "❌ Extension missing"
+        mkdir -p extensions/nopecha/unpacked
+        cd extensions/nopecha
+        wget -qO chromium.zip https://github.com/NopeCHALLC/nopecha-extension/releases/download/0.5.5/chromium.zip
+        unzip -q chromium.zip -d unpacked/
+        echo "📋 Extension files:"
+        ls -la unpacked/
+        if [ -f unpacked/manifest.json ]; then
+          echo "✅ Extension installed correctly"
+        else
+          echo "❌ manifest.json not found, checking subdirectories..."
+          find unpacked/ -name "manifest.json"
+        fi
         
     - name: Run claim script
       working-directory: scripts
-      run: |
-        # 使用 xvfb-run 在虚拟显示中运行有头模式（支持扩展）
-        xvfb-run -a python main.py
-      env:
-        DISPLAY: ':99'
+      run: python main.py
       
     - name: Upload artifacts
       if: always()
