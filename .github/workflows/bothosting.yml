@@ -8,6 +8,7 @@ on:
 jobs:
   claim-coins:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
     - name: Checkout private repo
@@ -21,6 +22,44 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        
+    - name: Setup Gost Proxy
+      env:
+        SOCKS_PROXY_URL: ${{ secrets.SOCKS_PROXY_URL }}
+      run: |
+        # 如果没有环境变量，跳过 Gost 设置
+        if [ -z "$SOCKS_PROXY_URL" ]; then
+          echo "ℹ️ 未配置代理，跳过 Gost 设置"
+          exit 0
+        fi
+        
+        echo "🌐 使用环境变量代理: ${SOCKS_PROXY_URL%%:*}://***"
+        
+        # 安装 Gost
+        wget -q https://github.com/ginuerzh/gost/releases/download/v2.11.5/gost-linux-amd64-2.11.5.gz
+        gunzip gost-linux-amd64-2.11.5.gz
+        sudo mv gost-linux-amd64-2.11.5 /usr/local/bin/gost
+        sudo chmod +x /usr/local/bin/gost
+        
+        # 启动 Gost
+        nohup gost -L=:1080 -F="$SOCKS_PROXY_URL" > gost.log 2>&1 &
+        sleep 5
+        
+        # 验证
+        if pgrep -x "gost" > /dev/null && netstat -tuln | grep -q ":1080 "; then
+          echo "✅ Gost 代理已启动"
+        else
+          echo "❌ Gost 启动失败"
+          cat gost.log 2>/dev/null
+          exit 1
+        fi
+        
+        # 测试代理连接
+        if curl -x socks5://127.0.0.1:1080 https://www.google.com -I --max-time 10 --silent --fail > /dev/null 2>&1; then
+          echo "✅ 代理连接测试成功"
+        else
+          echo "⚠️ 代理连接测试失败（可能是上游代理问题，继续执行）"
+        fi
         
     - name: Install dependencies
       working-directory: scripts
@@ -55,6 +94,9 @@ jobs:
         
     - name: Run claim script
       working-directory: scripts
+      env:
+        SOCKS_PROXY_URL: ${{ secrets.SOCKS_PROXY_URL }}
+        USE_GOST_PROXY: ${{ secrets.SOCKS_PROXY_URL != '' && 'true' || 'false' }}
       run: xvfb-run -a python main.py
       
     - name: Upload artifacts
