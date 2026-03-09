@@ -38,11 +38,7 @@ jobs:
         
     - name: Run claim script
       working-directory: scripts
-      env:
-        DISCORD_SESSION: ${{ secrets.DISCORD_SESSION }}
-      run: |
-        echo "$DISCORD_SESSION" > BOTHOSTING_DISCORD_SESSION.json
-        python main.py
+      run: python main.py
       
     - name: Upload artifacts
       if: always()
