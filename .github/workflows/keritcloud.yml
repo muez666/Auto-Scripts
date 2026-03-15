@@ -15,7 +15,7 @@ jobs:
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/KeritCloud-Auto-Renew
+          repository: ${{ github.repository_owner }}/Game-Auto-Scripts
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
@@ -79,7 +79,7 @@ jobs:
           fi
       
       - name: Install dependencies
-        working-directory: scripts
+        working-directory: scripts/Keritcloud
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -88,7 +88,7 @@ jobs:
           playwright install-deps chromium
       
       - name: Run renew script
-        working-directory: scripts
+        working-directory: scripts/Keritcloud
         env:
           # GitHub Secrets
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
@@ -105,6 +105,6 @@ jobs:
         if: always()
         with:
           name: renewal-screenshots
-          path: scripts/*.png
+          path: scripts/Keritcloud/*.png
           retention-days: 30
           if-no-files-found: ignore
