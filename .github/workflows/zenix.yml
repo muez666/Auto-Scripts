@@ -17,7 +17,7 @@ jobs:
       - name: Checkout private repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/Zenix-Auto-Renew  # 格式: username/repo-name
+          repository: ${{ github.repository_owner }}/Game-Auto-Scripts
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: scripts
       
@@ -26,17 +26,18 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: 'scripts/requirements.txt'
+          cache-dependency-path: 'scripts/Zenix/requirements.txt'
       
       - name: Install dependencies
+        working-directory: scripts/Zenix
         run: |
           python -m pip install --upgrade pip
-          pip install -r scripts/requirements.txt
+          pip install -r requirements.txt
       
       - name: Run renewal script
         env:
           RENEWAL_LINK: ${{ secrets.RENEWAL_LINK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        working-directory: scripts
+        working-directory: scripts/Zenix
         run: python main.py
